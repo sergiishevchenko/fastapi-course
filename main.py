@@ -1,6 +1,6 @@
 from enum import Enum
 from fastapi import Body, FastAPI, Query, Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 app = FastAPI()
@@ -148,26 +148,39 @@ app = FastAPI()
 
 
 # Part 7 - Body - Multiple Parameters
+# class Item(BaseModel):
+#     username: str
+#     full_name: str | None = None
+
+
+# class User(BaseModel):
+#     name: str
+#     description: str | None = None
+
+
+# @app.put("/items/{item_id}")
+# async def update_item(
+#     *,
+#     item_id: int = Path(..., title="The ID of the item to get", ge=10, le=100),
+#     q: str | None = None,
+#     item: Item = Body(..., embed=True)
+# ):
+#     results = {"item_id": item_id}
+#     if q:
+#         results.update({"q": q})
+#     if item:
+#         results.update({"item": item})
+#     return results
+
+## Part 8 - Body - Fields
 class Item(BaseModel):
-    username: str
-    full_name: str | None = None
-
-
-class User(BaseModel):
     name: str
-    description: str | None = None
+    description: str | None = Field(None, title="The description of the item", max_length=300)
+    price: float = Field(..., gt=0, description="The price must be greater than zero")
+    tax: float | None = None
 
 
 @app.put("/items/{item_id}")
-async def update_item(
-    *,
-    item_id: int = Path(..., title="The ID of the item to get", ge=10, le=100),
-    q: str | None = None,
-    item: Item = Body(..., embed=True)
-):
-    results = {"item_id": item_id}
-    if q:
-        results.update({"q": q})
-    if item:
-        results.update({"item": item})
+async def update_item(item_id: int, item: Item = Body(..., embed=True)):
+    results = {"item_id": item_id, "item": item}
     return results
